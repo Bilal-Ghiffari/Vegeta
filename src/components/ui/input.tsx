@@ -56,7 +56,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        <small className="text-red-500 mt-1">{error}</small>
+        <small className="text-red-500 ">{error}</small>
       </>
     );
   }
