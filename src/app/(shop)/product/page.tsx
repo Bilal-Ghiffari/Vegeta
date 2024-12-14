@@ -31,6 +31,7 @@ export default function Products() {
   const [activePage, setActivePage] = useState(1);
   const [totalPage] = useState(5);
 
+  console.log("window length", window.history);
   return (
     <main className="flex flex-col w-full min-h-screen items-center pb-8">
       <div className="w-content flex pt-5 gap-6">

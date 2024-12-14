@@ -9,6 +9,9 @@ import { cn } from "@/lib/utils";
 
 // styles
 import "./globals.css";
+import { SessionProvider } from "next-auth/react";
+import NextAuthProvider from "@/providers/NextAuthProvider";
+import ReduxProvider from "@/providers/ReduxProvider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -34,7 +37,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(poppins.className, "text-neutral-600")}>
-        {children}
+        <ReduxProvider>
+          <NextAuthProvider>{children}</NextAuthProvider>
+        </ReduxProvider>
         <Toaster />
       </body>
     </html>

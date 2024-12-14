@@ -96,7 +96,7 @@ export default function Checkout() {
               </div>
             </div>
             <div className="flex flex-1">
-              <Link className="w-[100%]" href={"/payment"}>
+              <Link className="w-[100%]" replace href={"/checkout/payment"}>
                 <Button className={cn("w-[100%] mt-6 bg-leaf", hover.shadow)}>
                   Lanjutkan Pembayaran
                 </Button>
