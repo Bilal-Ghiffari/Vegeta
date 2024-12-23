@@ -1,8 +1,25 @@
 // components
 import { Checkbox } from "@/components/ui/checkbox";
 import { IconStar } from "@/components/icons";
+import React from "react";
 
-const FilterRating = () => {
+interface FilterRatingProps {
+  value?: string[];
+  onChange: (checkedRating: string[]) => void;
+}
+
+const FilterRating = ({ value = [], onChange }: FilterRatingProps) => {
+  const [rating, setRating] = React.useState<string[]>(value);
+
+  const onChangeRating = (isChecked: boolean, rate: any) => {
+    setRating((selectedRating) => {
+      const newRating = !isChecked
+        ? selectedRating.filter((rt) => rt !== rate)
+        : [...selectedRating, rate];
+      onChange(newRating);
+      return newRating;
+    });
+  };
   return (
     <>
       <div className="text-base">Rating</div>
@@ -11,6 +28,7 @@ const FilterRating = () => {
           <Checkbox
             className="w-6 h-6 border-2 border-leaf data-[state=checked]:bg-leaf data-[state=checked]:text-primary-foreground"
             id={"rate-all"}
+            checked={rating.length === 0}
           />
           <label
             htmlFor={"all"}
@@ -25,6 +43,9 @@ const FilterRating = () => {
             <Checkbox
               className="w-6 h-6 border-2 border-leaf data-[state=checked]:bg-leaf data-[state=checked]:text-primary-foreground"
               id={`rate-${rate}`}
+              onCheckedChange={(checked: boolean) =>
+                onChangeRating(checked, rate)
+              }
             />
             <label
               htmlFor={`rate-${rate}`}
