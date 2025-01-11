@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/legacy/image";
 import Link from "next/link";
 
@@ -12,6 +13,7 @@ import ProductsJSON from "@/assets/json/products.json";
 import ImageBanner from "@/assets/images/image-banner.png";
 
 export default function Home() {
+  console.log("window length", window.history);
   return (
     <main className="flex flex-col w-full min-h-screen items-center pb-8">
       <div className="w-content">

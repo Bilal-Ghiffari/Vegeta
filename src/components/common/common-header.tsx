@@ -40,11 +40,64 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSession, signOut } from "next-auth/react";
+import React from "react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Product } from "@prisma/client";
 
 interface HeaderProps {}
 
 const CommonHeader: React.FC<HeaderProps> = () => {
-  const isLoggedIn = true;
+  const { data: session } = useSession();
+  const [search, setSearch] = React.useState("");
+  const [suggestions, setSuggestions] = React.useState([]);
+  const debouncedSearch = useDebounce(search, 2000);
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  console.log("debounced", search);
+
+  React.useEffect(() => {
+    if (debouncedSearch) {
+      fetchSuggestions(debouncedSearch);
+    } else {
+      setSuggestions([]);
+    }
+  }, [debouncedSearch]);
+
+  const fetchSuggestions = async (query: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/product?k=${query}`, {
+        method: "GET",
+        // body: {name: query},
+        headers: { "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setLoading(false);
+        const json = await res.json();
+        setSuggestions(json?.data?.records);
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error fetching suggestions:", error);
+    }
+  };
+
+  const [isVisible, setIsVisible] = React.useState(false); // Tracks visibility for animation
+  const [shouldRender, setShouldRender] = React.useState(false);
+
+  // Trigger visibility changes
+  React.useEffect(() => {
+    if (search !== "") {
+      setShouldRender(true); // Mount the component
+      setTimeout(() => setIsVisible(true), 10); // Start animation after mounting
+    } else {
+      setIsVisible(false); // Start hiding animation
+      setTimeout(() => setShouldRender(false), 10); // Unmount after animation ends
+    }
+  }, [search]);
+
+  console.log("suggestions", suggestions);
 
   return (
     <>
@@ -109,7 +162,7 @@ const CommonHeader: React.FC<HeaderProps> = () => {
             </NavigationMenu>
           </div>
 
-          {isLoggedIn ? (
+          {session?.user ? (
             <div className="flex gap-4 items-center">
               <CommonNotificationBadge
                 notificationDetail={{ color: "bg-leaf", count: 2 }}
@@ -130,7 +183,7 @@ const CommonHeader: React.FC<HeaderProps> = () => {
               </CommonNotificationBadge>
               <div className="w-[42px] h-[42px] rounded-full relative overflow-hidden">
                 <Image
-                  src="https://ui-avatars.com/api/?name=Taufan+Fadhilah&background=random"
+                  src={`https://ui-avatars.com/api/?name=${session?.user?.name}&background=random`}
                   layout="fill"
                   alt=""
                   objectFit="cover"
@@ -139,7 +192,9 @@ const CommonHeader: React.FC<HeaderProps> = () => {
 
               <div className="flex flex-col w-[127px] justify-center">
                 <div className="text-xs">Hi, Apa Kabar?</div>
-                <div className="text-sm font-semibold">Taufan Fadhillah</div>
+                <div className="text-sm font-semibold">
+                  {session?.user?.name}
+                </div>
               </div>
 
               <DropdownMenu>
@@ -153,8 +208,14 @@ const CommonHeader: React.FC<HeaderProps> = () => {
                   <DropdownMenuItem>
                     <Link href="/history">History Transactions</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href="/auth/signin">Logout</Link>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      signOut({
+                        callbackUrl: "/auth/signin",
+                      })
+                    }
+                  >
+                    Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -194,11 +255,35 @@ const CommonHeader: React.FC<HeaderProps> = () => {
             </Select>
             <div className="relative">
               <Input
-                className="w-[288px] rounded-tl-none rounded-bl-none"
+                className="w-[400px] rounded-tl-none rounded-bl-none"
                 type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Pencarian ..."
                 suffix="Magnifier"
               />
+              {shouldRender && (
+                <div
+                  className={cn(
+                    "w-[400px] bg-gray-200 p-5 mt-3 z-10 absolute rounded-md transition-transform duration-300 ease-in-out transform",
+                    isVisible
+                      ? "opacity-100 scale-100 translate-y-0"
+                      : "opacity-0 scale-95 translate-y-[-10px] pointer-events-none"
+                  )}
+                >
+                  {suggestions.length > 0 ? (
+                    <div>
+                      {suggestions.map((ls: Product) => (
+                        <h3 key={ls?.id}>
+                          {loading ? "Loading..." : ls?.name}
+                        </h3>
+                      ))}
+                    </div>
+                  ) : (
+                    <h3>No Data</h3>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

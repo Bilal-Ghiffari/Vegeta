@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductCategory {
+  FUNGI
+  FRUIT
+  VEGETABLE
+  ONION
+  BEANS
+  SPICE
+}
+
+model User {
+  id          String @id @default(uuid())
+  name        String
+  email       String @unique
+  password    String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  @@map("users")
+}
+
+model Product {
+  id            String @id @default(cuid())
+  name          String @unique
+  image         String
+  unit          String
+  description   String @db.LongText
+  price         Int @default(0) @db.UnsignedInt
+  itemSold      Int @default(0) @map("item_sold") @db.UnsignedInt
+  rating        Int @default(5) @db.UnsignedInt
+  category      ProductCategory
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  @@map("products")
+}
